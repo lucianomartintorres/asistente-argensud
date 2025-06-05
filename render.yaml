@@ -1,0 +1,10 @@
+services:
+  - type: web
+    name: asistente-argensud
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: bash start.sh
+    envVars:
+      - key: value: sk-proj-... (tu clave)
+        value: TU_CLAVE_DE_OPENAI_ACÁ
+    plan: free
