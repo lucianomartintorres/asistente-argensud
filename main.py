@@ -9,18 +9,16 @@ load_dotenv()
 
 app = FastAPI()
 
-# ✅ CORS solo para tu dominio Wix
+# Permitir todos los orígenes temporalmente para evitar errores CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "https://argensudcarta.com",
-        "https://www.argensudcarta.com"
-    ],
+    allow_origins=["*"],  # ← TEMPORAL durante desarrollo, luego especificar dominios
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
+# Cargar Excel con la carta
 df = pd.read_excel("Argensud_Menu_12.xlsx")
 
 def normalizar(texto):
@@ -31,7 +29,7 @@ def normalizar(texto):
 class RequestData(BaseModel):
     mensaje: str
 
-# Memoria temporal por IP
+# Memoria temporal para seguimiento de platos por IP
 ultima_mencion = {}
 
 @app.post("/chat")
@@ -43,26 +41,26 @@ def chat(request: Request, data: RequestData):
     if not mensaje:
         return {"respuesta": "¿Podés repetir tu pregunta?"}
 
-    # SALUDOS
+    # SALUDO
     saludos = ["hola", "buenas", "qué tal", "buen día", "buenas noches", "cómo estás"]
-    if any(saludo in mensaje for saludo in saludos):
+    if any(s in mensaje for s in saludos):
         return {"respuesta": "¡Hola! ¿Querés que te muestre algunas opciones de nuestra carta? Podés decirme si tenés ganas de picar algo, comer carne, una pizza o tomar algo."}
 
-    # DESCRIPCIÓN
+    # PEDIDO DE MÁS INFO
     if any(p in mensaje for p in ["más info", "detalle", "descripción", "qué trae", "qué tiene"]):
         if ultima_mencion_plato:
             return {"respuesta": f"Te cuento: {ultima_mencion_plato['descripcion']} 😊\n¿Querés saber el precio o te sugiero algo más?"}
         else:
             return {"respuesta": "¿De qué plato querés que te cuente? Podés decirme el nombre y te doy los detalles."}
 
-    # PRECIO
+    # CONSULTA DE PRECIO
     if any(p in mensaje for p in ["precio", "cuánto", "vale", "sale"]):
         if ultima_mencion_plato:
             return {"respuesta": f"El precio es ${ultima_mencion_plato['precio']} 😉\n¿Querés que te sugiera otro similar o algo para acompañar?"}
         else:
             return {"respuesta": "Decime el nombre del plato y te digo el precio."}
 
-    # BUSQUEDA DE PLATOS
+    # BÚSQUEDA DE PLATOS
     resultados = []
     for _, fila in df.iterrows():
         texto_busqueda = (
@@ -86,7 +84,7 @@ def chat(request: Request, data: RequestData):
         texto_respuesta += "\n\n¿Querés que te cuente más sobre alguno? O si querés, te sugiero algo según lo que tengas ganas 😄"
         return {"respuesta": texto_respuesta.strip()}
 
-    # SUGERENCIAS SI NO ENCUENTRA
+    # SUGERENCIAS SI NO ENCUENTRA NADA
     sugerencias = {
         "carne": "¿Te interesan milanesas, bifes o alguna tabla para compartir?",
         "mariscos": "Podés probar algo con langostinos o centolla. ¿Querés que te muestre?",
