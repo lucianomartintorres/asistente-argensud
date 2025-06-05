@@ -9,9 +9,13 @@ load_dotenv()
 
 app = FastAPI()
 
+# ✅ CORS solo para tu dominio Wix
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://argensudcarta.com",
+        "https://www.argensudcarta.com"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
