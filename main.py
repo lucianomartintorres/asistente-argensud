@@ -12,7 +12,7 @@ app = FastAPI()
 # Permitir todos los orígenes temporalmente para evitar errores CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # ← TEMPORAL durante desarrollo, luego especificar dominios
+    allow_origins=["https://argensudcarta.com"],  # ← TU DOMINIO EXACTO
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
